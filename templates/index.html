@@ -1,0 +1,329 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Hash Verification</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(to bottom, #4ca26a, #2c5744);
+            color: #f0f0f0;
+            min-height: 100vh;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .section {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 500;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        h2 {
+            margin-top: 0;
+            color: white;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+            font-weight: 400;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+            word-break: break-all;
+            white-space: normal;
+            overflow-wrap: break-word;
+        }
+        .success {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #e0f2e1;
+            border: 1px solid rgba(76, 175, 80, 0.5);
+        }
+        .error {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #fadbd8;
+            border: 1px solid rgba(244, 67, 54, 0.5);
+        }
+        button {
+            padding: 10px 18px;
+            background-color: #2c5744;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            background-color: #1e3c2e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            table-layout: fixed;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+        th {
+            background-color: rgba(0, 0, 0, 0.2);
+            font-weight: 500;
+            color: white;
+        }
+        th:first-child {
+            width: 30%;
+        }
+        th:last-child {
+            width: 70%;
+        }
+        td {
+            color: #e0f2e1;
+        }
+        input[type="file"] {
+            display: block;
+            margin: 15px 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 4px;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        input[type="file"]::file-selector-button {
+            background-color: #2c5744;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+        input[type="file"]::file-selector-button:hover {
+            background-color: #1e3c2e;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        p {
+            line-height: 1.6;
+        }
+        /* Force desktop layout */
+        @media (min-width: 768px) {
+            .container {
+                flex-wrap: nowrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Hash Verification System</h1>
+    <p style="text-align: center; margin-bottom: 30px;">This system registers original images and detects if they've been altered by comparing hash values.</p>
+
+    <div class="container">
+        <div class="section">
+            <h2>Register Original Image</h2>
+            <form id="registerForm">
+                <p>Upload an original image to register its hash:</p>
+                <input type="file" id="registerFile" accept=".jpg,.jpeg,.png,.gif" required>
+                <button type="submit">Register Image</button>
+            </form>
+            <div id="registerResult" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h2>Verify Image</h2>
+            <form id="verifyForm">
+                <p>Upload an image to verify against its original hash:</p>
+                <input type="file" id="verifyFile" accept=".jpg,.jpeg,.png,.gif" required>
+                <button type="submit">Verify Image</button>
+            </form>
+            <div id="verifyResult" class="result"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Registered Images</h2>
+        <button id="refreshList">Refresh List</button>
+        <div style="overflow-x: auto;">
+            <table id="imageTable">
+                <thead>
+                    <tr>
+                        <th>Image Name</th>
+                        <th>Hash Value</th>
+                    </tr>
+                </thead>
+                <tbody id="imageTableBody">
+                    <!-- Will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Register form submission
+            document.getElementById('registerForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const fileInput = document.getElementById('registerFile');
+                if (!fileInput.files[0]) {
+                    showResult('registerResult', 'Please select a file to upload', false);
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+
+                fetch('/register', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showResult('registerResult', data.error, false);
+                    } else {
+                        showResult('registerResult', `Image "${data.filename}" registered successfully with hash: ${data.hash}`, true);
+                        loadRegisteredImages();
+                    }
+                })
+                .catch(error => {
+                    showResult('registerResult', 'Error: ' + error, false);
+                });
+            });
+
+            // Verify form submission
+            document.getElementById('verifyForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const fileInput = document.getElementById('verifyFile');
+                if (!fileInput.files[0]) {
+                    showResult('verifyResult', 'Please select a file to upload', false);
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+
+                fetch('/verify', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    return response.json().then(data => {
+                        return {
+                            ok: response.ok,
+                            data: data
+                        };
+                    });
+                })
+                .then(result => {
+                    if (result.ok) {
+                        showResult('verifyResult', result.data.message, true);
+                    } else {
+                        let message = result.data.message || result.data.error || 'Unknown error';
+                        showResult('verifyResult', message, false);
+
+                        // Add hash comparison if available
+                        if (result.data.original_hash && result.data.uploaded_hash) {
+                            document.getElementById('verifyResult').innerHTML += `
+                                <p><strong>Original Hash:</strong> ${result.data.original_hash}</p>
+                                <p><strong>Uploaded Hash:</strong> ${result.data.uploaded_hash}</p>
+                            `;
+                        }
+                    }
+                })
+                .catch(error => {
+                    showResult('verifyResult', 'Error: ' + error, false);
+                });
+            });
+
+            // Refresh image list
+            document.getElementById('refreshList').addEventListener('click', function() {
+                loadRegisteredImages();
+            });
+
+            // Load registered images on page load
+            loadRegisteredImages();
+
+            // Helper functions
+            function showResult(elementId, message, isSuccess) {
+                const element = document.getElementById(elementId);
+                element.textContent = message;
+                element.style.display = 'block';
+
+                // Set appropriate class
+                element.className = 'result';
+                if (isSuccess) {
+                    element.classList.add('success');
+                } else {
+                    element.classList.add('error');
+                }
+            }
+
+            function loadRegisteredImages() {
+                fetch('/list')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('imageTableBody');
+                    tableBody.innerHTML = '';
+
+                    const images = data.registered_images;
+                    if (Object.keys(images).length === 0) {
+                        const row = tableBody.insertRow();
+                        const cell = row.insertCell(0);
+                        cell.colSpan = 2;
+                        cell.textContent = 'No images registered yet';
+                    } else {
+                        for (const [filename, hash] of Object.entries(images)) {
+                            const row = tableBody.insertRow();
+                            const nameCell = row.insertCell(0);
+                            const hashCell = row.insertCell(1);
+
+                            nameCell.textContent = filename;
+                            hashCell.textContent = hash;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading registered images:', error);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
